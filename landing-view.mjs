@@ -97,6 +97,8 @@ export function createLandingView(root, { controller, onChoose, onAbort, onActio
     if(preparationStep==='load'&&onConfirmPreparation?.({zoneReviewed,loadReviewed:true})){returnFocus=q('[data-flight-action]');closePreparation();update();q('[data-flight-action]').focus();}
   });
   const camera = q('[data-flight-camera]'), slopes = q('[data-flight-slopes]'), timeline=[...root.querySelectorAll('.landing-timeline li')], rateButtons=[...root.querySelectorAll('[data-flight-rate]')];
+  // Free orbit on the scenario view (outside the cinematic flight): drag rotates, wheel zooms.
+  const freeCam = { az: 0, el: 0, zoom: 1 };
   let layers = new Map(), planSignature = null, profileSignature = null, lastPhase = '', lastPlanRevision=-1, lastPlanActive=null, lastFuelProfile=null,lastFuelValue=null,lastFuelActive=null,lastProfileText=null, fuel = {earth:100,target:100};
   const instruments = {}, fuelControls = {}, plansDOM = {};
   for (const key of ['target']) {
@@ -369,6 +371,12 @@ export function createLandingView(root, { controller, onChoose, onAbort, onActio
     if(mode==='orbital'){position.set(x+80,y+110,z+90);look.set(x,layer.ground(x/layer.U,z/layer.U),z);}
     else if(mode==='lower'){position.set(x+1,y+1.5,z+1);look.set((zone?.x||0)*layer.U,layer.ground(zone?.x||0,zone?.z||0),(zone?.z||0)*layer.U);}
     else{const k=LANDER_VISUAL_SCALE/6;position.set(x+15*k,y+10*k,z+22*k);look.set(x,y+1.4*k,z);} // exterior framing keeps its share of the drawn lander
+    if(mode!=='lower'&&(freeCam.az||freeCam.el||freeCam.zoom!==1)){
+      const off=position.clone().sub(look),r=off.length()||1;
+      const az=Math.atan2(off.x,off.z)+freeCam.az,el=Math.min(1.45,Math.max(0.06,Math.asin(Math.min(1,Math.max(-1,off.y/r)))+freeCam.el)),rr=r*freeCam.zoom;
+      position.set(look.x+Math.sin(az)*Math.cos(el)*rr,look.y+Math.sin(el)*rr,look.z+Math.cos(az)*Math.cos(el)*rr);
+      position.y=Math.max(position.y,layer.ground(position.x/layer.U,position.z/layer.U)+1);
+    }
     const now=performance.now();
     if(!layer.cameraPose){layer.cameraPose={position:position.clone(),look:look.clone(),at:now,mode,transition:0};}
     const pose=layer.cameraPose;
@@ -381,7 +389,14 @@ export function createLandingView(root, { controller, onChoose, onAbort, onActio
   function setVisible(visible) { for(const layer of layers.values())layer.root.visible=visible&&Boolean(layer.terrain.grid); }
   // Shadow focus for scene-lighting: the lander while it is on screen, otherwise null (rover).
   // Manual drag/zoom on the cinematic camera (mission.js forwards canvas input; true = consumed).
-  function cameraInput(kind,a,b){const layer=layers.get('target'),view=controller.renderState();if(!layer?.stage||camera.value!=='cinematic'||!view.active||!layer.lander.visible)return false;if(kind==='orbit')layer.stage.userOrbit(a,b);else if(kind==='zoom')layer.stage.userZoom(a);return true;}
+  function cameraInput(kind,a,b){
+    const layer=layers.get('target'),view=controller.renderState();
+    if(layer?.stage&&camera.value==='cinematic'&&view.active&&layer.lander.visible){if(kind==='orbit')layer.stage.userOrbit(a,b);else if(kind==='zoom')layer.stage.userZoom(a);return true;}
+    if(view.deployed&&view.mirrorAvailable)return false; // exploration: mission.js owns the orbit camera
+    if(kind==='orbit'){freeCam.az-=a*0.006;freeCam.el=Math.min(1.2,Math.max(-1.2,freeCam.el+b*0.004));}
+    else if(kind==='zoom')freeCam.zoom=Math.min(3,Math.max(0.3,freeCam.zoom*a));
+    return true;
+  }
   function focusPosition(key){const layer=layers.get(key);return layer?.lander?.visible&&layer.root.visible?layer.lander.position:null;}
   return {update,attach,scene,setCamera,setVisible,focusPosition,cameraInput,resetPreparation,openPreparation,closePreparation, fuelPercent:()=>fuel.target, initialConditions: () => ({target:{propellantKg:(controller.renderState().profiles?.target?.propellantKg??0)*fuel.target/100}})};
 }
