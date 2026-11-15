@@ -282,6 +282,8 @@ class TelemetryService:
     def _snapshot_reading(self, lat: float, lon: float, site: str | None) -> dict[str, Any] | None:
         snapshot = self._load_snapshot()
         entry = snapshot.get(site) if site else None
+        if entry is None and site and site.startswith("zone-"):
+            return None  # Scout zones have no archive; a nearby site's reading is never relabelled as theirs
         if entry is None:
             # Sitio más cercano del snapshot (máx. ~1° ≈ 110 km) para no inventar lecturas lejanas.
             best, best_d = None, 1.0

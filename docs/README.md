@@ -19,6 +19,7 @@ One topic, one file, in the folder that matches it. Add new docs here. **ES** = 
 | [m2-audit.md](modules/m2-audit.md), [modulo-2.md](modules/modulo-2.md), [perfiles-base-m2.md](modules/perfiles-base-m2.md) | M2 analogy breakdown, mission base profiles (ES) |
 | [m3-processes.md](modules/m3-processes.md) | M3 dynamic processes, weather, 3D scene (ES) |
 | [m4-routes.md](modules/m4-routes.md) | M4 terrain, radar, subsurface and route exploration |
+| [scout.md](modules/scout.md) | Scout: trace a zone, zone registry, analysis revisions and activation |
 | [surface-assessment.md](modules/surface-assessment.md) | Flight Director, rocks and cavities |
 | [descenso-modelo.md](modules/descenso-modelo.md), [descenso-uso.md](modules/descenso-uso.md) | Powered-descent model and usage guide (ES) |
 | [earth-expedition.md](modules/earth-expedition.md) | Earth analogue field expeditions |

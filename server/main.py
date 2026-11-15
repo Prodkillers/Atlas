@@ -22,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import copilot, dossier
+from . import copilot, dossier, zones
 from .forecast import ForecastService
 from .telemetry import TelemetryService, weather_provider_name
 
@@ -77,6 +77,10 @@ copilot_limiter = RateLimiter(
 dossier_limiter = RateLimiter(
     per_ip=int(os.environ.get("DOSSIER_RATE_PER_MIN", "3")),
     global_limit=int(os.environ.get("DOSSIER_GLOBAL_RATE_PER_MIN", "20")),
+)
+analysis_limiter = RateLimiter(
+    per_ip=int(os.environ.get("SCOUT_ANALYSIS_RATE_PER_MIN", "4")),
+    global_limit=int(os.environ.get("SCOUT_ANALYSIS_GLOBAL_RATE_PER_MIN", "20")),
 )
 
 
@@ -223,6 +227,9 @@ async def dossier_endpoint(body: DossierRequest, request: Request):
         return await dossier.create(body.context, body.userNotes)
     except dossier.DossierProviderError as exc:
         return dossier.create_fallback(body.context, str(exc), body.userNotes)
+
+
+app.include_router(zones.build_router(zones.get_store_factory(REPO_ROOT), analysis_limiter, client_ip))
 
 
 @app.api_route("/api/{rest:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)

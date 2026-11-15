@@ -239,6 +239,7 @@ function renderComparePanel() {
     $('compare-coords').textContent = '';
     $('open-in-map').hidden = true;
     $('open-route-explorer').hidden = true;
+    $('open-in-scout').hidden = true;
     profileSvg.replaceChildren();
     thermalChart.replaceChildren();
     renderCalcList([]);
@@ -254,6 +255,9 @@ function renderComparePanel() {
   const routeLink = $('open-route-explorer');
   routeLink.href = `route-explorer.html#target=${encodeURIComponent(state.targetId)}&candidate=${encodeURIComponent(candidate.id)}`;
   routeLink.hidden = false;
+  const scoutLink = $('open-in-scout');
+  scoutLink.href = `scout.html#lat=${lat}&lon=${lon}&target=${encodeURIComponent(state.targetId)}&from=${encodeURIComponent(candidate.id)}`;
+  scoutLink.hidden = lat == null || lon == null;
   compareMetrics.replaceChildren();
   const summary = analogySummary(comparison.components);
   if (summary.strong.length || summary.weak.length) {

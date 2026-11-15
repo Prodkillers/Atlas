@@ -158,6 +158,8 @@ class ForecastService:
     def _from_snapshot(self, site: str | None, lat: float, lon: float) -> dict[str, Any] | None:
         snap = self._load_snapshot()
         entry = snap.get(site) if site else None
+        if entry is None and site and site.startswith("zone-"):
+            return None  # Scout zones have no archived forecast; never borrow a nearby site's
         if entry is None:
             # el más cercano a menos de ~1° (≈110 km), igual que la telemetría
             best = None

@@ -32,6 +32,6 @@ test('all public pages resolve their module dependencies, stylesheets and styles
       for (const match of text.matchAll(/\b(?:from\s*|import\s*\(\s*|loadOptional\s*\(\s*)["'](\.[^"']+)["']/g)) follow(file, match[1]);
     }
   }
-  for (const page of ['index.html', 'discovery.html', 'dossier.html', 'route-explorer.html']) visit(resolve(root, page));
+  for (const page of ['index.html', 'discovery.html', 'dossier.html', 'route-explorer.html', 'scout.html']) visit(resolve(root, page));
   assert.ok(visited.size > 50, 'The dependency traversal must cover the complete public application');
 });

@@ -1,0 +1,59 @@
+/* S.E.L.E.N.E. Scout page. Reuses styles.css tokens and the Discovery split viewport. */
+.scout-shell { padding-bottom: 34px; }
+.scout-workspace { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 12px; padding: 12px; }
+.scout-controls, .scout-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.scout-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 13px 4px; }
+.scout-modes button, .scout-row button, .scout-actions button:not(.primary-button), .scout-map-tools button, .scout-zones button {
+  min-height: 32px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 3px; background: #091b46; color: var(--white); font: .74rem var(--sans);
+}
+.scout-modes button[aria-pressed="true"] { border-color: var(--yellow); color: var(--yellow); box-shadow: inset 0 0 0 1px var(--yellow); }
+.scout-help { padding: 6px 13px; color: var(--muted); font: .7rem/1.5 var(--sans); }
+.scout-row { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 6px 13px; }
+.scout-row label, .scout-name { display: grid; gap: 4px; color: var(--muted); font: 10px/1.3 var(--mono); letter-spacing: .05em; }
+.scout-name { padding: 6px 13px; }
+.scout-row input, .scout-row select, .scout-name input, .scout-geojson textarea {
+  min-height: 32px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 3px; background: #06122f; color: var(--white); font: .78rem var(--mono);
+}
+.scout-goto input { width: 92px; }
+.scout-geojson { display: grid; gap: 6px; padding: 6px 13px; color: var(--muted); font: 10px var(--mono); }
+.scout-geojson textarea { width: 100%; resize: vertical; font-size: .7rem; }
+.scout-preview { margin: 6px 13px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 3px; font: .72rem/1.55 var(--mono); color: var(--white); }
+.scout-preview:empty { display: none; }
+.scout-preview .scout-error { color: #ff9f8f; }
+.scout-preview dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; }
+.scout-preview dt { color: var(--muted); }
+.scout-preview dd { margin: 0; }
+.scout-scales { margin: 4px 13px; border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px; display: flex; gap: 14px; color: var(--muted); font: .72rem var(--sans); }
+.scout-scales legend { font: 10px var(--mono); padding: 0 4px; }
+.scout-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 13px 4px; }
+.scout-actions .primary-button { min-height: 36px; padding: 8px 14px; border: 0; border-radius: 3px; background: var(--yellow); color: var(--deep); font: 700 .8rem var(--sans); }
+.scout-zones { list-style: none; margin: 0; padding: 10px 13px; display: grid; gap: 6px; }
+.scout-zones li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: .72rem var(--sans); color: var(--white); }
+.scout-zones small { display: block; color: var(--muted); font: 10px var(--mono); }
+.scout-map-panel .panel-heading { flex-wrap: wrap; }
+.scout-map-tools { display: flex; align-items: center; gap: 6px; color: var(--muted); font: .72rem var(--sans); }
+.scout-map-wrap { position: relative; height: clamp(360px, 52vh, 620px); background: #06122f; }
+#scout-map { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.scout-map-scale, .scout-map-legend { position: absolute; left: 10px; padding: 3px 7px; background: rgba(4, 13, 36, .78); color: var(--white); font: 10px var(--mono); border-radius: 2px; pointer-events: none; }
+.scout-map-scale { bottom: 10px; }
+.scout-map-legend { top: 10px; display: flex; align-items: center; gap: 8px; }
+.scout-ramp { width: 70px; height: 8px; background: linear-gradient(90deg, rgba(40,90,200,.3), rgba(145,165,115,.7), rgba(250,240,30,.95)); }
+.scout-attribution { padding: 6px 13px; color: var(--faint); font: 9px/1.4 var(--mono); }
+.scout-layers { list-style: none; margin: 0; padding: 8px 13px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 6px; }
+.scout-layers li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 3px; font: .74rem var(--sans); }
+.scout-layers li p { grid-column: 1 / -1; color: var(--muted); font: 10px/1.45 var(--mono); }
+.scout-events { padding: 4px 13px 10px; color: var(--muted); font: .7rem var(--sans); }
+.scout-events ol { max-height: 160px; overflow: auto; margin: 6px 0 0; padding-left: 20px; font: 10px/1.5 var(--mono); }
+.scout-sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; padding: 10px 13px; }
+.scout-sites:empty::before { content: 'Analyse a zone to rank its 2400 m micro-sites.'; color: var(--muted); font: .72rem var(--sans); }
+.scout-site { display: grid; gap: 6px; padding: 9px; border: 1px solid var(--line); border-radius: 3px; background: #091b46; }
+.scout-site[aria-current="true"] { border-color: var(--yellow); box-shadow: inset 0 0 0 1px var(--yellow); }
+.scout-site header { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.scout-site header strong { font: 900 1.4rem var(--heading); color: var(--yellow); }
+.scout-site img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 2px; background: #06122f; }
+.scout-site p { color: var(--muted); font: 10px/1.45 var(--mono); }
+.scout-site .scout-site-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.scout-site button, .scout-site a { min-height: 30px; padding: 5px 9px; border: 1px solid var(--line); border-radius: 3px; background: none; color: var(--white); font: .72rem var(--sans); text-decoration: none; display: inline-flex; align-items: center; }
+.scout-site a.scout-activate { border-color: var(--yellow); color: var(--yellow); }
+#scout-scene { display: block; width: 100%; height: 100%; touch-action: none; position: absolute; inset: 0; }
+@media (max-width: 980px) { .scout-workspace { grid-template-columns: minmax(0, 1fr); } }

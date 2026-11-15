@@ -1,0 +1,10 @@
+# Optional geospatial stack for Scout zone analyses (server/scout_engine.py).
+# Without it the API still validates and stores zones and reports the DEM layer as unavailable.
+# Ranges instead of pins: local Python 3.10 and the Python 3.14 image need different wheels.
+-r requirements.txt
+numpy>=2.2,<3
+rasterio>=1.4.3,<2
+pyproj>=3.7,<4
+pystac-client>=0.8,<1
+planetary-computer>=1.0,<2
+Pillow>=11,<13

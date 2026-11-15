@@ -13,6 +13,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .env
+# Scout zone registry and analysis artefacts (SCOUT_DATA_DIR default)
+.scout/
 .env.*
 .aws/
 !.env.example

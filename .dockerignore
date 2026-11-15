@@ -13,6 +13,9 @@ server/requirements-dev.txt
 server/pytest.ini
 tests
 scripts
+# Scout reuses the scenario terrain recipe at runtime (server/scout_engine.py)
+!scripts/terrain_metrics.py
+!scripts/analog_match.py
 # Datos crudos pesados
 raw-data
 *.tif

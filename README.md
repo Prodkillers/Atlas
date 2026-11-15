@@ -8,6 +8,10 @@ Independent prototype for the [NASA Space Apps 2026 challenge](https://www.space
 
 > Spanish version: [README.es.md](README.es.md).
 
+## S.E.L.E.N.E. Scout · trace your analogue
+
+`scout.html` lets you mark a point, draw an area (≤ 25 km per side) or import GeoJSON, pick a Moon/Mars target and operation, and run a server analysis. The analysis ranks 2400 m micro-sites inside the zone with the same GLO-30 terrain recipe and geometric index as the scenarios, and returns an affinity map, Sentinel-2/Sentinel-1/ERA5 layers with their states, and an **Activate mission** link that opens the micro-site in Mission Control (`index.html#zone=…&rev=…&site=…`). Each analysis is a saved revision; missing layers are marked absent instead of borrowed from a nearby site. Requires the FastAPI backend; analyses need the optional `server/requirements-scout.txt`. See [Scout](docs/modules/scout.md).
+
 ## Earth field expeditions
 
 **Terrain 3D prepares an evidence-backed reconnaissance plan.** Choose a catalogue site or one of the four paired Earth windows, select a mobility, sampling or shelter-reconnaissance objective, set a conceptual payload and assumed constraints, and edit inspection stops on the actual DEM. Review and confirm the plan, then drive the rover in Auto or Manual and explicitly inspect each reached stop.

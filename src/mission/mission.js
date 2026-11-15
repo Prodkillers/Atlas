@@ -15,6 +15,7 @@ import { createNasaExplorer } from '../audit/nasa-explorer.mjs';
 import { ROVER_CONFIG } from '../shared/rover-config.mjs';
 import { RECORD_POLICY } from '../audit/mission-audit.mjs';
 import { createAuditPanel } from '../audit/analog-audit-ui.mjs';
+import { parseScoutHash, zoneScenarioUrl } from '../scout/scout-geo.mjs';
 import * as THREE from '../../assets/vendor/three.module.min.js';
 import {
   clamp, validGrid, gridExtent, waypointsFor, sampleHeight, sampleSlope, elevationRange, centerProfile,
@@ -1239,7 +1240,7 @@ $('export-mission').addEventListener('click', () => {
     view: S.view,
     profile: S.profile ? { id: S.profile.id, name: S.profile.name } : null,
     site,
-    scenario: S.view === 'split' && S.scenario ? { id: S.scenario.id, title: S.scenario.title, earthId: S.scenario.earthId, targetId: S.scenario.targetId, similarity: S.sc?.similarity || null } : null,
+    scenario: S.view === 'split' && S.scenario ? { id: S.scenario.id, title: S.scenario.title, earthId: S.scenario.earthId, targetId: S.scenario.targetId, similarity: S.sc?.similarity || null, ...(S.scenario.zone ? { zone: S.scenario.zone } : {}) } : null,
     analogyDossier: S.view === 'split' ? analogyPanel.dossier() : null,
     landing: S.view === 'split' ? landing.snapshot() : null,
     preparation: S.view === 'split' ? preparedMission : null,
@@ -1479,18 +1480,37 @@ async function loadScenarios() {
     $('view-split').disabled = true;
     return;
   }
-  for (const scenario of S.scenarios) {
-    const button = el('button', 'scenario-button');
-    button.type = 'button';
-    button.dataset.scenario = scenario.id;
-    button.dataset.body = scenario.body;
-    button.setAttribute('aria-pressed', 'false');
-    button.append(el('span', 'scenario-body', `DESTINATION / ${BODY_LABEL[scenario.body] || scenario.body.toUpperCase()}`), el('strong', '', scenario.targetLabel || scenario.targetId),
-      el('small', '', `${scenario.title} · analog: ${scenario.earthLabel || scenario.earthId}`));
-    button.addEventListener('click', () => selectScenario(scenario));
-    const item = el('li');
-    item.append(button);
-    list.append(item);
+  for (const scenario of S.scenarios) appendScenarioButton(scenario);
+}
+function appendScenarioButton(scenario) {
+  const button = el('button', 'scenario-button');
+  button.type = 'button';
+  button.dataset.scenario = scenario.id;
+  button.dataset.body = scenario.body;
+  button.setAttribute('aria-pressed', 'false');
+  button.append(el('span', 'scenario-body', `${scenario.zone ? 'SCOUT ZONE' : 'DESTINATION'} / ${BODY_LABEL[scenario.body] || scenario.body.toUpperCase()}`), el('strong', '', scenario.targetLabel || scenario.targetId),
+    el('small', '', `${scenario.title} · analog: ${scenario.earthLabel || scenario.earthId}`));
+  button.addEventListener('click', () => selectScenario(scenario));
+  const item = el('li');
+  item.append(button);
+  $('scenario-list').append(item);
+}
+// Scout zones open as an extra scenario from index.html#zone=…&rev=…&site=… (docs/modules/scout.md).
+async function openZoneFromHash() {
+  const h = parseScoutHash(location.hash);
+  if (!h.zone || !h.rev) return;
+  try {
+    const scenario = await fetchJSON(zoneScenarioUrl(h.zone, h.rev, h.site || 1), { timeout: 10000, cache: 'no-store' });
+    if (!scenario?.zone || !scenario.earthId || !scenario.targetId) throw new Error('invalid scenario');
+    let known = S.scenarios.find(item => item.id === scenario.id);
+    if (!known) {
+      S.scenarios.push(scenario); appendScenarioButton(scenario); nasaExplorer.setScenarios(S.scenarios); known = scenario;
+      $('view-split').disabled = false;
+    }
+    log('SYS', `Scout zone ${scenario.zone.id} · revision ${scenario.zone.revision} · micro-site ${scenario.zone.rank}.`);
+    selectScenario(known);
+  } catch {
+    log('WARN', `Scout zone ${h.zone} revision ${h.rev} could not be opened: it needs the backend that stored it.`);
   }
 }
 async function loadGrid(path) {
@@ -2366,7 +2386,7 @@ function prepareLighting(T) {
 }
 const contextCache = new Map();
 function loadContext(id) {
-  if (!contextCache.has(id)) contextCache.set(id, fetchJSON(`assets/data/scenarios/context/${id}.json`).catch(() => null));
+  if (!contextCache.has(id)) contextCache.set(id, id.startsWith('zone-') ? Promise.resolve(null) : fetchJSON(`assets/data/scenarios/context/${id}.json`).catch(() => null));
   return contextCache.get(id);
 }
 // Earth uses the real sun for its site and time; the target uses the same local solar hour (phase-matched view).
@@ -2522,7 +2542,7 @@ async function loadProcesses(token, scenario, center, targetGrid) {
   if (!S.processes) await loadOptionalModules(true);
   const [forecast, history] = await Promise.all([
     getForecast(scenario.earthId, center),
-    fetchJSON(`assets/data/processes/${scenario.earthId}.json`).catch(() => null),
+    scenario.zone ? Promise.resolve(null) : fetchJSON(`assets/data/processes/${scenario.earthId}.json`).catch(() => null), // Scout zones have no published history
   ]);
   if (S.scToken !== token) return;
   sc.processHistory = history;
@@ -2546,7 +2566,7 @@ function activeProcessesContext(){return S.view==='terrain'?earthAnalysis.proces
 function renderProcesses() {
   const context=activeProcessesContext(),earth=S.view==='terrain',a = context?.processes, off = a?.utcOffsetSeconds || 0;
   const focus = $('proc-focus');
-  focus.replaceChildren(el('strong', '', 'What to look at here: '), document.createTextNode(earth?`${context?.site?.name||'Selected Earth location'} · wind-driven transport, freezing and local test windows. Planetary reference: ${context?.scenario?.targetLabel||context?.scenario?.targetId||'loading'}.`:(PROCESS_FOCUS[S.scenario?.id] || 'choose a scenario.')));
+  focus.replaceChildren(el('strong', '', 'What to look at here: '), document.createTextNode(earth?`${context?.site?.name||'Selected Earth location'} · wind-driven transport, freezing and local test windows. Planetary reference: ${context?.scenario?.targetLabel||context?.scenario?.targetId||'loading'}.`:(PROCESS_FOCUS[S.scenario?.id] || (S.scenario?.zone ? 'the LIVE FORECAST of this Scout zone, queried by its own coordinates. Traced zones have no archived forecast or radar history; missing data stays marked as missing.' : 'choose a scenario.'))));
   $('processes-panel').querySelector('.proc-intro').textContent=earth?'Module 3 · Processes at the active Earth expedition. Forecast hours are local to this site; the selected planetary curve is a comparison reference, not local weather.':'Module 3 · When does the Earth analog replicate the target’s thermal cycle, and when is there sand saltation or rapid freezing? Local hours of the Earth site.';
   $('proc-api').textContent = !a ? context?.phase==='unavailable'?'Source: no matching hourly forecast supplied for this location. The process lab remains available.':'Source: loading…'
     : `${a.source.provider} · ${a.source.live ? 'current weather-model forecast' : 'archived forecast; hours may have passed'}`;
@@ -3017,7 +3037,8 @@ function boot() {
   setView('globe');
   renderSuggestions();
   log('SYS', `Console started · ${SITES.length} Earth analogs · documentary catalog.`);
-  loadScenarios();
+  loadScenarios().then(openZoneFromHash);
+  window.addEventListener('hashchange', openZoneFromHash);
   loadOptionalModules();
   detectBackend();
   requestAnimationFrame((t) => { lastFrame = t; requestAnimationFrame(frame); });

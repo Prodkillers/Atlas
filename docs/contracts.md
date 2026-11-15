@@ -93,6 +93,18 @@ Variables de entorno: `METEOMATICS_USERNAME`, `METEOMATICS_PASSWORD`, `OPENAI_AP
 
 Pronóstico y procesos dinámicos: ver [`modules/m3-processes.md`](modules/m3-processes.md).
 
+Scout zones (detail in [`modules/scout.md`](modules/scout.md)):
+
+- `GET /api/scout/health` → `{ "status":"ok", "dem":"available|unavailable", "missingModules":[…], "targets":[…], "operations":[…] }`
+- `POST /api/zones` body `{ "geojson": <Point|Polygon|Feature|FeatureCollection(1)>, "name"?, "searchMeters"? (Point, 2400–12000), "source"?: { "kind":"user-drawn|user-point|geojson-import|discovery-candidate", "ref"? } }` → `201` (new) or `200` (same outline already stored) with `{ id:"zone-<10 hex>", name, geometry (Polygon, [lon,lat]), center:[lat,lon], bbox:[W,S,E,N], areaKm2, extentMeters, scales, revisions:[…] }`. Invalid geometry → `422 { "error":"invalid-geometry", "message":"…" }`.
+- `GET /api/zones`, `GET /api/zones/{id}`.
+- `POST /api/zones/{id}/analyses` body `{ "targetId", "operation":"general|mobility|sampling|drilling|habitat", "scales":[2400,7200] }` → `202 { jobId, zoneId, revision, eventsUrl, manifestUrl }`. Each call creates a new immutable revision.
+- `GET /api/jobs/{jobId}/events?after=<seq>` → `{ status:"queued|running|ready|unavailable|failed|cancelled", events:[{ seq, at, stage, status, message, data? }], next }`; `POST /api/jobs/{jobId}/cancel`.
+- `GET /api/zones/{id}/revisions/{n}` → manifest `{ status, target, geometry, layers:{ <name>:{ status:"ready|partial|running|pending|unavailable|absent|on-demand|cancelled", product?, resolution?, coverage?, reason?, method? } }, sites:[{ rank, earthId:"zone-<hash>-r<n>-s<rank>", center, index, searchIndex, foundAtScaleMeters, metrics, gridPath, imagery, roughness, climateContext }], affinity:{ cellMeters, cells:[[lat,lon,index]] }, caveats }`.
+- `GET /api/zones/{id}/revisions/{n}/sites/{rank}/grid` → §2 grid (same fields as `assets/data/scenarios/earth/*.json`, plus `zone` and `climateContext`); `…/imagery.jpg`.
+- `GET /api/zones/{id}/revisions/{n}/scenario?site=<rank>` → §1 scenario object plus `zone` (Mission Control opens it from `index.html#zone=…&rev=…&site=…`).
+- `/api/telemetry` and `/api/processes/forecast` with `site=zone-*`: if the provider fails, no archived snapshot from another site is returned (`503`).
+
 - `POST /api/dossier` body `{ "context": { … }, "userNotes": "…" }` returns `{ "markdown":"…", "provider":"openai", "model":"…", "grounded":[…], "generatedAt":"ISO", "disclaimer":"…" }`. Optional `userNotes` is limited to 4,000 characters and is explicitly labeled unverified in a dedicated dossier section; it is not source evidence. It uses the same server-only OpenAI-compatible configuration as `/api/copilot`, produces English Markdown, and explicitly preserves missing, archived, modelled, and literature data as such. It returns `503 no-ai-provider|ai-provider-unavailable`, `429 rate-limited`, or `422 invalid-input`. Output budget: 4096 tokens. Primary and fallback models are each tried once (60-second hard wall-time budget per attempt); no local estimated-token gate is used.
 
 ## 4. Módulos JS puros (sin DOM, con tests `node --test`)
@@ -134,6 +146,8 @@ Contrato aditivo implementado en `analog-audit.mjs`: `CandidateAnalogPayload` **
 - El adaptador solo acepta presión terrestre en la extensión opcional explícita `telemetry.values.surfacePressurePa` (Pa absolutos a la superficie). Open-Meteo y Meteomatics la entregan cuando está disponible, con validación de unidades y respaldo sin presión opcional; nunca se convierte presión MSL. Telemetría de otro sitio se descarta. Las rejillas cruzadas invalidan la auditoría.
 
 ## Cambios
+
+- S.E.L.E.N.E. Scout (additive): new `scout.html` page and `src/scout/`, zone registry and analysis jobs in `server/zones.py` / `server/scout_engine.py` (§3, [`modules/scout.md`](modules/scout.md)). Shared files touched minimally: `src/mission/mission.js` opens `#zone=…&rev=…&site=…` as an extra scenario (scenario buttons factored into `appendScenarioButton`, mission export adds `scenario.zone`); `src/audit/analog-audit.mjs` adds optional `scenario.zone` to `CandidateAnalogPayload` (v1.0.0 fields unchanged); `src/audit/mission-profiles.mjs` resolves a zone to the base profile of the reference destination with the same target; `server/telemetry.py` and `server/forecast.py` no longer relabel a nearby site's snapshot for `zone-*` sites; Discovery adds a “Trace zone in Scout” link; navigation adds Scout. Optional server dependencies in `server/requirements-scout.txt`.
 
 - Earth workspace integration with the modular repository layout: field analysis files now live in `src/expedition/`, automatic surface evidence in `src/mission/`, and the ID helper in `src/shared/`. Entry-page resources, imports, test fixtures and moved module-guide links use the new locations. The Discovery chat, its context reservation/prompt rules, English UI and existing landing/dossier/hazard modules are preserved. A public-page dependency check covers local module imports and stylesheet assets so missing files after a move fail before publication. Existing evidence directories remain historical cutoffs; the combined integration has its own QA evidence.
 

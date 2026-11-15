@@ -189,8 +189,12 @@ function buildProfile(scenarioId, s) {
 
 const PROFILES = Object.fromEntries(Object.entries(SPECS).map(([id, spec]) => [id, buildProfile(id, spec)]));
 
+// Scout zones reuse the base profile of the reference destination with the same planetary target.
+const TARGET_PROFILE = Object.freeze({ 'marius-hills': 'lava-tube', shackleton: 'polar-shadow', jezero: 'hyperarid-salt', 'valles-marineris': 'wind-canyon' });
+
 export function getMissionBaseProfile(scenarioOrId) {
-  const id = typeof scenarioOrId === 'string' ? scenarioOrId : scenarioOrId?.id;
+  const zoneTarget = typeof scenarioOrId === 'object' && scenarioOrId?.zone ? TARGET_PROFILE[scenarioOrId.targetId] : null;
+  const id = zoneTarget || (typeof scenarioOrId === 'string' ? scenarioOrId : scenarioOrId?.id);
   if (typeof id !== 'string' || !Object.hasOwn(PROFILES, id)) {
     throw new RangeError(`Unsupported mission base profile: ${String(id)}`);
   }

@@ -64,7 +64,8 @@ export function buildCandidateAnalogPayload(input = {}) {
   const { scenario, earthGrid = null, targetGrid = null, telemetry = null } = input || {};
   return {
     schema: 'CandidateAnalogPayload', version: CONTRACT_VERSION,
-    scenario: scenario ? { id: scenario.id, title: scenario.title, earthId: scenario.earthId, targetId: scenario.targetId, body: scenario.body, focus: scenario.focus || null } : null,
+    scenario: scenario ? { id: scenario.id, title: scenario.title, earthId: scenario.earthId, targetId: scenario.targetId, body: scenario.body, focus: scenario.focus || null,
+      ...(scenario.zone ? { zone: { id: scenario.zone.id, revision: scenario.zone.revision, rank: scenario.zone.rank, geometry: scenario.zone.geometry || null, source: scenario.zone.source || null, manifestUrl: scenario.zone.manifestUrl || null } } : {}) } : null,
     earth: adaptSite(earthGrid, 'earth', scenario?.earthId, telemetry),
     target: adaptSite(targetGrid, scenario?.body, scenario?.targetId),
     adaptationWarnings: [
