@@ -7,12 +7,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=8080
+    PORT=8080 \
+    SCOUT_DATA_DIR=/tmp/selene-scout
 
 WORKDIR /app
 
-COPY server/requirements.txt server/requirements.txt
-RUN pip install -r server/requirements.txt
+COPY server/requirements.txt server/requirements-scout.txt server/
+# Scout zone analyses need the geospatial stack (rasterio, numpy, pyproj, STAC clients, Pillow);
+# the rasterio wheel bundles GDAL but links the system libexpat.
+RUN apt-get update && apt-get install -y --no-install-recommends libexpat1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install -r server/requirements-scout.txt
 
 # El contexto lo filtra .dockerignore (sin .git, .venv*, credenciales, tests ni datos crudos).
 COPY . .

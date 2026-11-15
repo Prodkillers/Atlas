@@ -95,8 +95,8 @@ DEPLOY_ARGS=(
   --service-account "${RUNTIME_SA}"
   --allow-unauthenticated
   --port 8080
-  --cpu 1 --memory 512Mi
-  --min-instances 0 --max-instances 3
+  --cpu 1 --memory 1Gi
+  --min-instances 0 --max-instances 1 --no-cpu-throttling
   --concurrency 80 --timeout 60
   --set-env-vars "${ENV_VARS}"
 )

@@ -72,11 +72,19 @@ published for this site*. M2 uses the base profile of the reference destination 
 ## Optional dependencies
 
 The analysis needs `numpy`, `rasterio`, `pyproj`, `pystac-client`, `planetary-computer` and `Pillow`
-(`server/requirements-scout.txt`). Without them, `/api/scout/health` reports `dem: unavailable`. Zones are still
-validated and stored, and every analysis records the DEM layer as unavailable with the missing modules. The
-production `Dockerfile` installs only `server/requirements.txt`. Enabling Scout analyses in production is a
-deployment decision: install `requirements-scout.txt` in the image. `.dockerignore` already ships
-`scripts/terrain_metrics.py` and `scripts/analog_match.py`, which the engine imports.
+(`server/requirements-scout.txt`). The production `Dockerfile` installs them. Without them (for example a local
+`.venv-server` with only `requirements.txt`), `/api/scout/health` reports `dem: unavailable`. Zones are still
+validated and stored, and every analysis records the DEM layer as unavailable with the missing modules.
+`.dockerignore` ships `scripts/terrain_metrics.py` and `scripts/analog_match.py`, which the engine imports.
+
+Cloud Run (`.github/workflows/deploy-cloudrun.yml`, `scripts/deploy-cloudrun.sh`):
+
+- One instance (`--max-instances=1`). Zones and job state live in that instance's memory and
+  `SCOUT_DATA_DIR=/tmp/selene-scout`; a second instance would answer “not found” for another instance's jobs.
+- `--no-cpu-throttling`. Analyses keep running after the `202` response.
+- `--memory=1Gi` for GDAL/rasterio and two concurrent workers. Not measured in Cloud Run.
+- Zones are ephemeral: a restart or redeploy deletes them, and their links stop working. Persistence would need
+  a GCS volume mounted at `SCOUT_DATA_DIR`.
 
 Rate limit: `SCOUT_ANALYSIS_RATE_PER_MIN` (default 4 per IP) and `SCOUT_ANALYSIS_GLOBAL_RATE_PER_MIN` (20).
 Zones are at most 25 km per side and 500 vertices. Two analysis workers run at a time.
