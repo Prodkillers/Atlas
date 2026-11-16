@@ -1,163 +1,168 @@
-# A.R.E.S. Twin · Analog Atlas
+# S.E.L.E.N.E. Ops
 
-A Mission Control console for characterizing Earth analogues and preparing Moon/Mars exploration methods: real terrain, Earth field expeditions, a simulated rover, source-labelled current or archived weather-model context, geometric comparisons and a Flight Director copilot.
+**Surface Exploration, Lithology & Environment Network Engine** — a Mission Control console for finding and characterizing Earth analogues, planning simulated field expeditions, and exploring Moon and Mars mission scenarios.
 
-**V2.0:** 14 documented sites plus **4 twin scenarios** with real elevation at the same scale (65×65 nodes every 37.5 m, 2.4 km window). The catalog ranking remains documentary and **the scenario index is geometric, not a planetary-similarity percentage**.
+Built by **ProdKillers** as an independent prototype for the [NASA Space Apps 2026 challenge](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/). The project does not imply NASA affiliation or endorsement. Some legacy files and identifiers retain the names **A.R.E.S. Twin / Analog Atlas**.
 
-Independent prototype for the [NASA Space Apps 2026 challenge](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/). It does not imply NASA affiliation or endorsement.
+The application combines **14 documentary catalogue sites**, **four published Earth–Moon/Mars pairs**, Discovery candidates, user-traced Scout zones, source-linked terrain and radar layers, a simulated rover, physical audits, weather-model context, and a Flight Director copilot. Its outputs support reconnaissance and follow-up planning; they do not certify analogue suitability, vehicle clearance, or field safety.
 
-> Spanish version: [README.es.md](README.es.md).
+## Run locally
 
-## S.E.L.E.N.E. Scout · trace your analogue
-
-`scout.html` lets you mark a point, draw an area (≤ 25 km per side) or import GeoJSON, pick a Moon/Mars target and operation, and run a server analysis. The analysis ranks 2400 m micro-sites inside the zone with the same GLO-30 terrain recipe and geometric index as the scenarios, and returns an affinity map, Sentinel-2/Sentinel-1/ERA5 layers with their states, and an **Activate mission** link that opens the micro-site in Mission Control (`index.html#zone=…&rev=…&site=…`). Each analysis is a saved revision; missing layers are marked absent instead of borrowed from a nearby site. Requires the FastAPI backend; analyses need the optional `server/requirements-scout.txt`. See [Scout](docs/modules/scout.md).
-
-## Earth field expeditions
-
-**Terrain 3D prepares an evidence-backed reconnaissance plan.** Choose a catalogue site or one of the four paired Earth windows, select a mobility, sampling or shelter-reconnaissance objective, set a conceptual payload and assumed constraints, and edit inspection stops on the actual DEM. Review and confirm the plan, then drive the rover in Auto or Manual and explicitly inspect each reached stop.
-
-The resulting JSON/Markdown report distinguishes complete and partial coverage, preserves site/session/source/scale and observations, explains the available topographic analogy and its breakdowns, and identifies the next field validation. Weather remains site/window context; DEM interpolation and illustrative SIM energy are labelled. Destination preparation, landing, M2 reports, Discovery and Mission Dossier retain their separate purposes. See [controls, model and evidence](docs/modules/earth-expedition.md) and the [shared contracts](docs/contracts.md#earth-expedition-domain).
-
-## A.R.E.S. scenarios
-
-| Scenario | Earth (DEM · imagery · radar) | Target (DEM · thermal) | Geometric index |
-| --- | --- | --- | --- |
-| Lava tube | La Corona (Lanzarote) · GLO-30 · S2 L2A · S1 RTC | Marius Hills · Kaguya TC 33 m · Diviner | 72 |
-| Shadowed polar crater | Wright Valley · GLO-30 · S2 L2A · S1 RTC (HH) | Shackleton · LOLA 5 m · Diviner + Mini-RF | 97 |
-| Hyperarid plain | Atacama · GLO-30 · S2 L2A · S1 RTC | Jezero · HiRISE 1 m · Mars Climate Database (model) | 82 |
-| Wind-eroded canyon | Wadi Rum · GLO-30 · S2 L2A · S1 RTC | Valles Marineris (Coprates) · CTX 20 m · MCD (model) | 83 |
-
-The index (0–100) combines p50 slope (0.30), p90 slope (0.25), p95–p5 relief (0.20) and mean TRI (0.15) using `100·smaller/larger` per component; roughness (0.10) is only included when both sides measure it in the same unit. Earth centers are chosen with `scripts/analog_match.py` (same recipe, §1.1 of the contracts). Details in `similarity.mjs`, sources in [docs/qa/targets-sources.md](docs/qa/targets-sources.md) and contracts in [docs/contracts.md](docs/contracts.md).
-
-## Running the demo
-
-**One command for API and web**, from `Atlas`:
+From the repository root, with **Node.js 18+** and Python with virtual-environment support:
 
 ```bash
 npm run dev
 ```
 
-Open [localhost:8000](http://localhost:8000) for the web app, [health API](http://localhost:8000/api/health) and [API docs](http://localhost:8000/api/docs). From the parent folder use `npm --prefix Atlas run dev`. Use `npm run dev -- --port 8027` for another port; `npm start` serves the same app without reload.
-
-The launcher detects `.venv`, `.venv-server`, or `ATLAS_PYTHON`. If dependencies are missing it prepares `.venv-server` from the existing requirements; the first setup needs network access. It loads the local environment file when present without displaying its contents. Open-Meteo and local copilot rules work without an AI key. `Ctrl+C` stops the server.
-
-For reproducible setup with **mise**, manual virtual-environment activation, optional AI providers, Docker and Cloud Run, see [the mise guide](docs/ejecucion-mise.md) and [backend setup](server/README.md).
-
-**Static mode without the API:** `npm run start:static -- 8028`, [localhost:8028](http://localhost:8028). Weather comes from the archive and keeps its date; it is not labelled as current. Calculations and Excel work locally.
-
-1. **Explorer:** choose a profile and a site, click “Start mission” and drive the rover (WASD or the pad; autonomous mode by default).
-2. **A.R.E.S. scenarios:** choose a scenario to see Earth | Target side by side with the same camera. Below: compared telemetry, rover physics, geometric index and Flight Director.
-3. **Module 2 · Automatic tracking:** choose a scenario without filling in fields; the shared prototype configuration (350 kg) and the scenario sources feed the 3D bench, matrix and calibration. Start the rover to record samples every 10 s; download a real 12-sheet Excel workbook with history, tools, provenance and limits, plus JSON/Markdown. The optional manual lab is isolated from the report. [Usage, formulas and limits](docs/modules/modulo-2.md).
-4. **Rover feed:** ⛶ button (or the F key) in the 3D view: full screen with a rover-camera look, Chase / Mast / Orbital cameras (C key), heading, artificial horizon and telemetry. It is a **simulated feed**: there is no real link to any rover.
-5. **Active processes · 72 h test window (Module 3):** in scenario mode, panel 09 crosses the hourly forecast (Meteomatics or Open-Meteo) with the target's diurnal curve (LRO Diviner or Mars Climate Database) and marks at which local hour the analogue replicates the **shape** of heating or cooling, when sand **saltation** occurs (the process behind Martian dust storms) and rapid **freezing** crossings; it adds 12 months of surface change from Sentinel-1 radar. Absolute temperatures and intensities do not match: shape, phase and process are compared.
-
-## 3D bench and NASA collection
-
-When a scenario is chosen, the M2 bench connects the Earth/target/support weight arrows to the automatic mission configuration and its references. It keeps the original mass and the test mass separately; the reduced mass changes inertia. Wheel and drill use explicit Atlas schematics. Models never provide scientific parameters.
-
-**Explore Moon and Mars models and targets**, below M2, opens seven local assets with a fact sheet and attribution: Scarecrow, Perseverance, Moon, Mars, LRO, Block Island and Apollo 11. The cartographic globes use official equirectangular textures separate from the GLBs; their markers open the four existing scenarios. The Apollo 11 terrain carries Z×60 and is excluded from slopes; Block Island is a synthetic scene independent of Jezero/Earth.
-
-Drag the scene or use the arrows, `+`/`−` and `Home` on its focused canvas. Ambient rotation is optional and respects reduced motion. Models load on demand; on failure there are schematics/fact sheets and accessible values. [M2 usage and limits](docs/modules/modulo-2.md#banco-visual-3d-y-explorador-nasa), [asset preparation and credits](docs/modules/nasa-assets.md), [visual evidence](docs/evidencias/nasa-3d/).
-
-M2 preview with backend: [localhost:8027](http://localhost:8027), command `npm start -- --port 8027` from `Atlas`. The previous static preview on 8016 is kept. Leave the server terminal open while reviewing. [Real Excel and evidence](docs/evidencias/m2-automatico/).
-
-## Data and regeneration
-
-| Script | Output | Source |
-| --- | --- | --- |
-| `scripts/fetch-terrain.py` | 9×9 DEM + imagery for 14 sites | Copernicus GLO-90 (Open-Meteo), EOxCloudless 2024 |
-| `scripts/fetch-scenarios-earth.py` | `assets/data/scenarios/earth/*` | Planetary Computer STAC: cop-dem-glo-30, sentinel-2-l2a, sentinel-1-rtc |
-| `scripts/prefilter-regions.py` | `assets/data/discovery/regions-<targetId>.json` | Coarse global region prefilter (Open-Meteo Elevation · GLO-90) |
-| `scripts/discover-analogs.py` | `assets/data/discovery/<targetId>.json` | Multi-scale refinement with JAXA ALOS World 3D-30m (AW3D30, Planetary Computer `alos-dem`) + thermal/aridity context (Open-Meteo ERA5) |
-| `scripts/fetch-targets.py` | `assets/data/scenarios/targets/*` | PGDA LOLA, USGS Astrogeology (Kaguya TC, HiRISE, CTX), PDS Diviner and Mini-RF, Mars Climate Database |
-| `python -m server.snapshot` | `assets/data/telemetry-snapshot.json` | Open-Meteo |
-| `python -m server.forecast_snapshot` | `assets/data/processes-forecast-snapshot.json` (72 h per site) | Open-Meteo |
-| `scripts/fetch-process-history.py` | `assets/data/processes/*` (Sentinel-1, 12 months) | Planetary Computer sentinel-1-rtc, Open-Meteo Archive |
-
-Terrain metrics are always computed with `scripts/terrain_metrics.py`. `.venv-*` environments are not committed.
-
-### Discovering analogues
-
-The two-stage search uses `.venv-data`: a **coarse global prefilter** selects regions, then **fine refinement** scans them at multiple scales and adds climate context (thermal amplitude and aridity).
+Open **[localhost:8000](http://localhost:8000/)**. The same server serves the web app, [health endpoint](http://localhost:8000/api/health), and [API documentation](http://localhost:8000/api/docs).
 
 ```bash
-# 1) Prefilter: scan continental belts and rank regions for refinement
-.venv-data/bin/python scripts/prefilter-regions.py marius-hills --step 1.0 --top-regions 6
-# 2) Refine: scan selected regions with JAXA AW3D30, multiple scales + ERA5, diverse Top-N
-.venv-data/bin/python scripts/discover-analogs.py marius-hills --region auto --scales 2400,7200 --top 5 --min-distance-km 25 --max-per-region 2
-# Alternative: choose a declared region; --limit bounds the scan to measure coverage and latency
-.venv-data/bin/python scripts/discover-analogs.py marius-hills --region centroamerica-volcanic --limit 20
-.venv-data/bin/python scripts/discover-analogs.py --self-check   # runs without pyproj
+npm run dev -- --port 8027       # API + web on another port, with backend reload
+npm start -- --port 8027         # API + web without reload
+npm run start:static -- 8028     # Static client and published datasets, without the API
 ```
 
-Outputs are written to `assets/data/discovery/`; resumable per-cell cache lives in `$XDG_CACHE_HOME/ares-twin-discovery/` (default `~/.cache`). `--force` recomputes cached cells. Open the panel at `discovery.html`. The authoritative scoring DEM is JAXA ALOS World 3D-30m (AW3D30), served without authentication through Planetary Computer `alos-dem`; the coarse prefilter remains Open-Meteo GLO-90, and the catalog scenario twins remain Copernicus GLO-30. The exploratory index compares geometry (slope/relief/TRI) **and thermal amplitude**; aridity is Earth-side context and is not scored against Moon or Mars. Candidates are not published field-test sites. Thermal amplitude compares diurnal air temperature (ERA5) with surface temperature (Diviner/MCD): it is a proxy, not a claim of physical equivalence. AW3D30 uses EGM96 and Copernicus uses EGM2008; that vertical-datum difference is effectively constant and sub-meter across a 2.4 km window, so it does not materially affect relative terrain metrics.
+There is no frontend build step. The launcher detects `.venv`, `.venv-server`, or the interpreter set in `ATLAS_PYTHON`. If backend dependencies are missing, it prepares `.venv-server` using the existing requirements; the first setup requires network access. Python 3.14 is pinned in `mise.toml`. Keep the server terminal open; `Ctrl+C` stops it.
 
-## How it is calculated
+Open-Meteo and local copilot rules work without credentials. Optional weather and OpenAI-compatible AI providers are configured on the backend; a local environment file is loaded when present. AI-assisted Mission Dossier generation requires a configured provider. See [backend configuration](server/README.md) and the [mise setup guide](docs/ejecucion-mise.md).
 
-| Profile | Criteria and weights |
-| --- | --- |
-| Mars · Dunes | Dune field (50), dry environment (20), crescent dunes (20), mobility tests (10) |
-| Moon · Rocky terrain | Rocky surface (35), irregular relief (30), volcanic terrain (15), long-shadow testing (15), dry environment (5) |
-| Mars · Sampling | Documented hyperaridity (55), dry environment (15), documented drilling (30) |
+Static mode uses archived weather with its original dates. Local terrain exploration, audits and exports remain available; Scout analysis and provider-backed requests require the API. Scout zone analyses use the optional geospatial stack in `server/requirements-scout.txt`; without it, zone validation remains available and unavailable analysis layers retain their reason.
 
-For each site the weights of the recorded tags are added up. A criterion with no data in the fact sheet adds zero, **without claiming the attribute is absent**. Ties favor a precedent for the profile and then the name, with Spanish collation. There is no randomness. The configuration is at the top of `app.js`; `createRanking` and `readCriteria` are the same functions used by the interface and the tests.
+## Explore the application
 
-The weights are prototype decisions, not parameters calibrated against Mars or the Moon. Precedents influence this documentary ranking. In a future geometric comparison they should be shown separately, without favoring a place for its prestige. “Rocky” and “irregular” are qualitative descriptions, not comparable measurements of blocks, roughness or slope.
+| Workspace | What you can do | Evidence boundary |
+| --- | --- | --- |
+| **Mission Control** · [index.html](index.html) | Explore the globe, select an Earth site or planetary destination, inspect terrain, and open Compare, Processes, Flight Director, Technical details and Sources. | The rover, descent and camera feed are simulations. Source-backed terrain and model weather retain their own dates and provenance. |
+| **Scout** · [scout.html](scout.html) | Trace a point or polygon, import GeoJSON, analyse a zone and activate a revision-specific micro-site in Mission Control. | Requires the backend and optional geospatial stack; missing layers remain absent. |
+| **Discovery** · [discovery.html](discovery.html) | Browse candidates from published regional scans, compare their terrain and climate context, and open a candidate in Route Explorer. | Candidate generation does not establish scientific novelty, access, safety or an exhaustive search of Earth. |
+| **Field Expedition** · Terrain 3D | Prepare an Earth traverse, inspect reached stops and produce a source-linked field report. | DEM observations describe regional terrain; they do not measure materials or validate rover-scale obstacles. |
+| **Route Explorer** · [route-explorer.html](route-explorer.html) | Compare regional route hypotheses under slope/relief constraints, view terrain and SAR layers, and export GeoJSON. | Routes and radar screens require independent validation before operational use. |
+| **Mission Dossier** · [dossier.html](dossier.html) | Assemble a technical report from the available mission context, with Markdown and browser Print / Save as PDF. | Generated text must preserve missing evidence and the scope of each source; it is distinct from the Earth field-run report. |
 
-## Evidence and limits
+### Scout zones
 
-- Fact sheets distinguish documented precedents from candidates proposed for evaluation. A precedent can be robotics, human training or a scientific comparison; the fact sheet specifies which.
-- Coordinates locate regions of interest and are not test polygons. Unless a point source says otherwise, they have not been cartographically revalidated. The Haughton evidence for lunar operations refers to the crater, not necessarily to the Drill Hill point.
-- The hyperaridity of Pampas de La Joya is documented in regional sectors, but those points are not granted to the dune marker without showing it coincides with the studied sector.
-- The sample is not exhaustive and does not show that a site is accessible or safe. Test-scale measurements, permits, environmental assessment and field verification are required.
-- Earth relief alone does not reproduce the gravity, illumination, regolith, atmosphere, chemistry or biology of another world.
-- [Next sprint for modules 1, 3, 4 and 5](docs/product/recomendaciones-modulos.md); previous context and updated scope in [Module 2](docs/modules/modulo-2.md#copiloto-y-otros-módulos).
-- [Documentary audit of the 14 sites](docs/qa/source-audit.md), with cross-checked sources, availability and pending limits.
+`scout.html` lets you mark a point, draw an area (≤ 25 km per side) or import GeoJSON, pick a Moon/Mars target and operation, and run a server analysis. The analysis ranks 2400 m micro-sites inside the zone with the same GLO-30 terrain recipe and geometric index as the scenarios, and returns an affinity map, Sentinel-2/Sentinel-1/ERA5 layers with their states, and an **Activate mission** link that opens the micro-site in Mission Control (`index.html#zone=…&rev=…&site=…`). Each analysis is a saved revision; missing layers are marked absent instead of borrowed from a nearby site. Requires the FastAPI backend; analyses need the optional `server/requirements-scout.txt`. See [Scout](docs/modules/scout.md).
 
-## Sources and attribution
+### Earth field expeditions
 
-The institutional sources and publications for each place are in `data.js` and visible in the fact sheet. The four terrain illustrations are original SVGs created for the interface. They summarize catalog categories; they do not represent measured geometry or photographs of the places. The bars encode documentary points only.
+1. Select an Earth site and open **Terrain 3D**. The paired-window selector also provides La Corona, Wright Valley, Atacama and Wadi Rum.
+2. Choose a reconnaissance, sampling or shelter-reconnaissance objective. Set the conceptual payload, regional slope ceiling and illustrative drive allowance.
+3. In **Terrain & stops**, edit the ordered stops on the actual DEM. Stop 1 is the rover's departure point. Review the source, scale and direct-leg validation.
+4. In **Review & confirm**, acknowledge the limits and confirm. Confirmation holds the rover without advancing SIM time or recording an inspection.
+5. Press **Start expedition** once. It records the departure DEM baseline and activates the traverse toward stop 2. Auto follows the plan; Manual uses the drive pad or WASD/arrow keys with the scene focused.
+6. At later arrivals, use **Inspect & continue**, **Record & stay paused**, or **Record final inspection**. Optional notes remain attached to the inspected stop. Finishing early produces an explicitly incomplete decision.
+7. Download the **Markdown field report** and **JSON evidence**, or copy the bounded copilot context. The report distinguishes departure baselines from operator inspections and retains source identity, local coordinates, UTC and SIM time. It is separate from Mission Dossier and M2 audit exports.
 
-The map geometry uses [Natural Earth, 1:110m land](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-land/), public domain, in equirectangular projection. No third-party maps or images are served in real time.
+The interface follows Mission Control's shared colors and typography, with preparation steps, phase badges, instrument cards and an expandable evidence log. SIM time pauses while the run is paused or the page is hidden; returning requires an explicit resume. Reports retained in the tab should be exported before it is closed.
 
-The terrain rover is the [official Perseverance 3D model](https://science.nasa.gov/resource/mars-perseverance-rover-3d-model/) (NASA/JPL-Caltech, `assets/models/perseverance.glb`, 11.7 MB), loaded only when the terrain view opens; until then, or if it fails, a schematic rover is used.
+[Expedition controls, model and limits](docs/modules/earth-expedition.md).
 
-Each dataset keeps its own terms, credits and attribution requirements, recorded in each JSON (`provenance`, `imagery.credit`, `license`).
+### Earth analysis and Flight Director
+
+Terrain 3D exposes **M2 Test Inspector**, **Processes 72 h**, and **Surface, rocks & cavities · AI** for the active Earth location. A planetary comparison reference does not launch a descent. Earth and destination audits keep independent sessions and exports.
+
+The surface workspace derives regional evidence from the active DEM. Individual rock dimensions, material density, terrestrial cavity geometry and roof stability stay unknown when no suitable source supplies them. Published Marius pit geometry belongs to its own lunar reference; it is not copied into an Earth site. Flight Director uses the captured active context, with a local rule fallback when an AI provider is unavailable.
+
+[Earth analysis workspace](docs/modules/earth-analysis.md) · [surface evidence and reference limits](docs/modules/surface-assessment.md) · [AI context contract](docs/modules/ai-context.md).
+
+### Destination preparation and simulated descent
+
+For a Moon or Mars scenario, the flow is **choose destination → prepare zone and payload → confirm preparation → start descent → review contact and authorize deployment → explore with the rover**. Confirming preparation enables the start; it does not launch automatically.
+
+The destination has one landing map and fuel budget. Earth is an optional comparison reference. After deployment, the Earth test rover and simulated destination mirror use their own terrain frames; there is no hardware link. The flight models only an idealized final powered descent, with manual deployment authorization and a default 1× flight rate. Rover motion uses SIM ×20.
+
+The fullscreen rover feed provides Chase, Mast and Orbital cameras, heading and simulated telemetry. **F** opens the feed and **C** changes cameras. All views retain their simulation labels.
+
+[Descent usage](docs/modules/descenso-uso.md) · [model and limits](docs/modules/descenso-modelo.md).
+
+### Audit, processes and route evidence
+
+- **Module 2:** inspect analogy breakdown, mission-specific proposed equipment profiles and calibration assumptions. Automatic tracking and JSON/Markdown/12-sheet Excel exports retain observations, source data and unknowns separately. The optional manual lab is isolated from the recorded report. Local NASA models and textures provide visual context, not scientific parameters. [M2 guide](docs/modules/modulo-2.md) · [proposed equipment profiles](docs/modules/perfiles-base-m2.md) · [NASA assets and credits](docs/modules/nasa-assets.md).
+- **Module 3:** inspect a 72-hour model forecast and exploratory thermal, aeolian, freezing-crossing and cold-window rules. Thermal comparisons use normalized shape and phase, with air/surface and planetary-day differences stated. Weather presets are didactic scenarios; a wind threshold or temperature crossing does not prove a physical event. [Processes contract](docs/modules/m3-processes.md).
+- **Module 4:** inspect DEM-derived slope, relief and TRI; compare routes; view modeled terrain shadow and source-matched spatial Sentinel-1 pairs. Published cave/pit references and finer terrain patches have specific coverage limits. SAR backscatter changes do not detect underground voids or certify hazards. [Route Explorer sources and limits](docs/modules/m4-routes.md).
+
+## Published Earth–Moon/Mars pairs
+
+The paired terrain windows share **2.4 × 2.4 km**, **65×65 nodes**, and **37.5 m spacing**. Context terrain extends the scene to 19.2 km at a coarser display scale and is excluded from the central window's metrics.
+
+| Scenario | Earth terrain and imagery | Planetary terrain and thermal reference | Terrain index |
+| --- | --- | --- | ---: |
+| Volcanic lava tube | La Corona, Lanzarote · GLO-30 · Sentinel-2 · Sentinel-1 RTC | Marius Hills · Kaguya TC · Diviner | 72 |
+| Shadowed polar crater | Wright Valley · GLO-30 · Sentinel-2 · Sentinel-1 RTC HH | Shackleton · LOLA · Diviner · Mini-RF CPR | 97 |
+| Hyperarid saline plain | Atacama · GLO-30 · Sentinel-2 · Sentinel-1 RTC | Jezero · HiRISE · Mars Climate Database | 82 |
+| Wind-eroded canyon | Wadi Rum · GLO-30 · Sentinel-2 · Sentinel-1 RTC | Valles Marineris · CTX · Mars Climate Database | 83 |
+
+These indices are reproducible from the published grids with [compareTerrain](src/shared/similarity.mjs). The four pairs currently use median slope, p90 slope, p95–p5 relief and mean TRI, with editorial weights renormalized over available components. Earth radar dB and lunar CPR are excluded from direct comparison. Discovery comparisons may include an explicitly caveated thermal-amplitude term when supplied; aridity remains Earth-side context.
+
+**An index is not a planetary-similarity percentage or a success probability.** Documentary catalogue points are a separate weighted-tag ranking; an unrecorded tag contributes no points without establishing that the property is absent. Target/analogue centers and native source resolutions must be reviewed for each intended use.
+
+[Target sources](docs/qa/targets-sources.md) · [catalogue source audit](docs/qa/source-audit.md) · [shared data contracts](docs/contracts.md).
+
+## Data, provenance and regeneration
+
+Published datasets under `assets/data/` make the core demo reproducible. Products retain their source, acquisition/fetch dates, processing notes, licenses and coverage limits. A processed local product and an authenticated live provider connection are different capabilities.
+
+| Data | Published source or access path | Preparation entry point |
+| --- | --- | --- |
+| Catalogue terrain and imagery | Copernicus GLO-90 through Open-Meteo Elevation; EOxCloudless 2024 | `scripts/fetch-terrain.py` |
+| Paired Earth terrain, imagery and radar | Planetary Computer Copernicus GLO-30, Sentinel-2 L2A and Sentinel-1 RTC | `scripts/fetch-scenarios-earth.py` |
+| Lunar/Martian terrain and thermal references | NASA GSFC PGDA, USGS Astrogeology, PDS Diviner/Mini-RF and Mars Climate Database | `scripts/fetch-targets.py` |
+| Wider terrain context and display imagery | GLO-30, LOLA/Kaguya, MOLA/HRSC and the recorded image providers | `scripts/fetch-context.py`, `scripts/fetch-hires-imagery.py` |
+| Discovery candidates | Coarse GLO-90 prefilter; JAXA AW3D30 through Planetary Computer; ERA5 climate context | `scripts/prefilter-regions.py`, `scripts/discover-analogs.py` |
+| Weather and 72-hour forecasts | Open-Meteo; optional Meteomatics, with cache/archive fallbacks | `server/telemetry.py`, `server/forecast.py`, `python -m server.snapshot`, `python -m server.forecast_snapshot` |
+| Temporal and spatial radar context | Sentinel-1 RTC and recorded archive weather context | `scripts/fetch-process-history.py`, `scripts/m4_build_sar_maps.py`, `scripts/m4_build_discovery_sar.py` |
+| On-demand Scout analyses | Zone-specific GLO-30 terrain, Sentinel-2/Sentinel-1 and ERA5 context, with layer states and revision identity | `server/scout_engine.py`, `server/zones.py` |
+| Local terrain and cave/pit reference products | Source-specific USGS OPR, LROC and La Corona Pyroduct publications | `scripts/m4_extract_usgs_opr.py`, `scripts/m4_extract_lroc_dtm.py`, `scripts/m4_extract_pyroduct_corona.py` |
+
+Pipelines call external services and write published data; they are **not required to run the demo**. Regenerate deliberately using the pipeline's documented environment and options, preserving provenance and terms. Terrain metrics use `scripts/terrain_metrics.py`; local virtual environments are not versioned.
+
+[Discovery pipeline and contract](docs/modules/m1-discovery.md) · [Module 4 publication recipes](docs/modules/m4-routes.md) · [asset preparation](docs/modules/nasa-assets.md).
+
+## Repository layout
+
+Pages stay at the root; implementation modules live under `src/`. The site is served directly by the backend or a static server.
+
+```text
+index.html, discovery.html, scout.html, route-explorer.html, dossier.html
+src/
+  shared/       Terrain math, comparison, rover physics and shared configuration
+  mission/      Mission Control, layout, surface assessment and orchestration
+  discovery/    Candidate discovery UI and comparison
+  scout/        Zone tracing, analysis revisions and mission activation
+  audit/        M2 audit, tracking, Excel, NASA bench and visual assets
+  processes/    Weather, process rules, solar position and scene effects
+  landing/      Preparation, final powered descent and deployment
+  expedition/   Earth planning, analysis and field-run reports
+  hazards/      Terrain/SAR evidence and Route Explorer
+  dossier/      Mission Dossier context, generation and exports
+assets/         Published datasets, models, textures, fonts and vendored Three.js
+server/         FastAPI, weather, forecasts, copilot and dossier services
+scripts/        Data pipelines, local launcher and QA tools
+tests/          JavaScript tests and manual browser fixtures
+server/tests/   Python backend tests
+docs/           Contracts, module guides, source audits and validation evidence
+```
+
+[Documentation index](docs/README.md) · [contribution and module ownership rules](AGENTS.md) · [earlier Spanish overview](README.es.md).
 
 ## Checks
 
 ```bash
-npm run check                                   # JavaScript syntax and tests
-mise run check                                  # full check: JavaScript + Python backend
-# Without mise, with the virtual environment active:
-python -m pytest server/tests -q                # backend tests, no network
+npm run check                                 # JavaScript syntax and tests
+npm test                                      # JavaScript tests only
+mise run check                                # JavaScript + Python backend tests
+# Or, with the Python development environment active:
+python -m pytest server/tests -q               # Backend tests without provider calls
 ```
 
-The harnesses do not replace visual review or a full accessibility evaluation. See the [QA report](docs/qa/qa.md).
+Browser QA scripts and their fixtures are documented in the corresponding module guides. Historical counts and screenshots describe those particular runs, not a guarantee for another machine or deployment. See the [QA reports](docs/qa/qa.md) and [evidence index](docs/evidencias/README.md).
 
-## Files
+## Scientific and operational limits
 
-- `index.html`, `styles.css`, `mission.js`: Mission Control console. `app.js`, `data.js`: documentary ranking engine and the 14 sites.
-- `nasa-visual-math.mjs`, `nasa-stage.mjs`, `nasa-bench.mjs`, `nasa-explorer.mjs`: load projection, local loader, bench and gallery/globes, separate from the scientific engine.
-- `rover-config.mjs`, `mission-audit.mjs`, `xlsx-report.mjs`: shared configuration, sessions and local OOXML Excel.
-- `analog-audit.mjs`, `analog-audit-ui.mjs`: Module 2 audit and calibration; contract, export and sources in [docs/modules/modulo-2.md](docs/modules/modulo-2.md).
-- `mission-math.mjs`, `sim-physics.mjs`, `similarity.mjs`, `copilot-rules.mjs`: pure logic with tests in `tests/`.
-- `processes.mjs`, `weather-sim.mjs`, `solar.mjs`, `scene-fx.mjs`: 72 h processes, weather, solar position and 3D scene presentation.
-- `server/`: FastAPI (telemetry, copilot, static files), `Dockerfile`, `scripts/deploy-cloudrun.sh`.
-- `assets/data/`: DEMs, imagery, scenarios and archived readings. `assets/vendor/`: Three.js with its license.
-- `docs/`: contracts, sources, audit, QA, pitch and demo script.
-
-## Limits
-
-- Exploratory simulation, not a validated digital twin. The rover is kinematic and its energy uses assumptions documented in `sim-physics.mjs`.
-- 2.4 km windows: they do not resolve rocks or rover-scale obstacles. The Marius Hills pit (~65 m) is not resolved at 37.5 m; the LOLA LDEM is heavily interpolated.
-- Mars thermal data is modelled (MCD); Shackleton's has no minimum in the product used. Earth roughness (dB) and lunar roughness (CPR) are not compared with each other.
-- The Wadi Rum center is the team's choice, not a published test point.
-
-The Module 2 Excel uses a Mission Control dossier with a native chart, eight base tools per mission and base values kept separate from observations. See [downloadable examples and visual review](docs/evidencias/m2-excel-diseno/index.html) and [proposed profiles](docs/modules/perfiles-base-m2.md). Local preview: `http://localhost:8027/`; from Atlas start it with `npm start -- --port 8027`.
-
-## Final 3D descent and exploration from contact
-
-The four A.R.E.S. scenarios start with **choose a lunar or Martian destination → prepare the mission (Destination zone / Payload and summary) → confirm preparation → start descent → review and authorize → explore with the mirror rover**. Preparation is a dialog over the viewer: confirming enables the start without launching it; closing/Escape does not confirm. Editing zone/payload, resetting or changing scenario requires a new confirmation. Camera, rate and comparison keep the confirmation. The central gate covers CTA, play, viewer, keyboard and feed; with no valid candidate the flight is not forced, and 0 % is a deliberate test with a warning. There is a single landing map and fuel budget, the destination's. Earth is an optional reference, with no second lander and no second contact; after deployment the **Test rover** stays authoritative and the destination shows **Mirror rover · simulated**, synchronized by relative displacement from their own origins. Each DEM evaluates its own ground; absolute coordinates are not copied and there is no hardware link. If the Earth origin is missing, the destination can land but the mirror stays disabled with an explanation. A target failure holds the rover. Flight is **1× SIM by default**, speeds 0.5×/1×/2×/4× and **manual** authorization after contact; rover SIM ×20. Camera, pause, reset, modelled Earth weather and the M2 log keep their functions and session identity.
-
-Everything runs locally with the start commands above. [Usage and validation guide](docs/modules/descenso-uso.md) · [Model, limits and sources](docs/modules/descenso-modelo.md) · [Destination mission evidence](docs/evidencias/mision-destino/informe.md) · [Preparation, tests and measured performance](docs/evidencias/preparacion-rendimiento/informe.md). The Earth catalog keeps direct rover exploration. Regional DEMs do not certify terrain or resolve legs, rocks or cavities; Mars represents only the idealized final powered segment, without entry or parachutes.
+- **Exploratory prototype:** rover motion, energy use, descent and weather effects are models with stated assumptions, not a validated digital twin or an operational command system.
+- **Scale:** remeshing and interpolation add no source detail. Regional DEMs do not resolve wheel-scale obstacles, material strength or cave interiors. Finer published patches apply only to their recorded coverage.
+- **Thermal and weather context:** Diviner describes lunar surface products; Mars Climate Database is a model; Earth weather is model output, not a local instrument. Shackleton's current thermal product has no supplied minimum or diurnal curve. Missing values remain unknown.
+- **Subsurface and SAR:** radar surface differences, pit references and cave cross-sections do not establish underground connectivity, roof stability, local ice or safe access.
+- **Analogue selection:** gravity, atmosphere, radiation, regolith, chemistry and biology differ across bodies. Candidate novelty and suitability require documentary review and independent field measurements.
+- **Reports:** field-run evidence, M2 audit exports and Mission Dossier serve different scopes. Generated narrative and user notes do not create missing measurements.
+- **Attribution:** each dataset and visual asset keeps its own license and credit. Review them before reuse; field work also requires permits, environmental review and local safety assessment.
